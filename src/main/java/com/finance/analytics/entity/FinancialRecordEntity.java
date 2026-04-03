@@ -1,5 +1,6 @@
 package com.finance.analytics.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,15 +22,28 @@ public class FinancialRecordEntity {
 
     @Id
     @GeneratedValue
+    @Column(name = "id")
     private UUID id;
+
+    @Column(name = "record_type")
     private String recordType;
+
+    @Column(name = "category")
     private String category;
+
+    @Column(name = "description")
     private String description;
+
+    @Column(name = "amount")
     private Double amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserEntity user;
+
+    @Column(name = "is_active")
     private Boolean isActive = true;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

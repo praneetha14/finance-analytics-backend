@@ -1,5 +1,6 @@
 package com.finance.analytics.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -20,6 +21,7 @@ public class RolePermissionsEntity {
 
     @Id
     @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -28,5 +30,5 @@ public class RolePermissionsEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "permissions_id", referencedColumnName = "id")
-    private PermissionsEntity permissions;
+    private PermissionsEntity permission;
 }

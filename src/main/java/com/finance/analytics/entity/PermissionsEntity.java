@@ -19,9 +19,12 @@ public class PermissionsEntity {
 
     @Id
     @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
     @Column(name = "name")
     private String name;
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 }

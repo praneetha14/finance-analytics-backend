@@ -1,5 +1,6 @@
 package com.finance.analytics.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,20 +14,21 @@ import lombok.Setter;
 import java.util.UUID;
 
 @Entity
-@Table(name = "user_roles")
+@Table(name = "user_roles_entity")
 @Getter
 @Setter
-public class UserRoles {
+public class UserRolesEntity {
 
     @Id
     @GeneratedValue
+    @Column(name = "id")
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
-    private UserEntity userId;
+    private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
-    private RoleEntity roleId;
+    private RoleEntity role;
 }
