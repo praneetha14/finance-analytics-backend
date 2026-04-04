@@ -5,12 +5,14 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class CreateUserDTO {
 
     @NotBlank(message = "First name should not be empty")

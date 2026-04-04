@@ -35,4 +35,7 @@ public class UserEntity {
 
     @Column(name = "password")
     private String password;
+
+    @Column(name = "is_active")
+    private Boolean isActive = true;
 }
