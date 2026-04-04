@@ -15,7 +15,6 @@ import lombok.Data;
 public class CreateRecordDTO {
 
     @NotNull(message = "Record type is required")
-    @Enumerated(EnumType.STRING)
     private RecordTypeEnum recordType;
 
     @NotNull(message = "Amount is required")

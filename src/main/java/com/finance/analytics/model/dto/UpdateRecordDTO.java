@@ -1,6 +1,5 @@
 package com.finance.analytics.model.dto;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 
 public class UpdateRecordDTO {

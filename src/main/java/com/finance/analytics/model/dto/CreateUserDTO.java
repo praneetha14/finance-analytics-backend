@@ -6,6 +6,9 @@ import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.util.List;
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 public class CreateUserDTO {
@@ -33,4 +36,6 @@ public class CreateUserDTO {
             message = "Password must contain uppercase, lowercase, number, and special character"
     )
     private String password;
+
+    private List<UUID> roles;
 }
