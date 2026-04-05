@@ -4,8 +4,10 @@ import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.RoleRepository;
 import com.finance.analytics.repository.UserRepository;
 import com.finance.analytics.repository.UserRoleRepository;
+import com.finance.analytics.service.DashboardService;
 import com.finance.analytics.service.FinancialRecordService;
 import com.finance.analytics.service.UserService;
+import com.finance.analytics.service.impl.DashboardServiceImpl;
 import com.finance.analytics.service.impl.FinancialRecordServiceImpl;
 import com.finance.analytics.service.impl.UserServiceImpl;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -29,6 +31,12 @@ public class FinanceAnalyticsAutoConfiguration {
     public FinancialRecordService financialRecordService(FinancialRecordRepository financialRecordRepository,
                                                          UserRepository userRepository){
         return new FinancialRecordServiceImpl(financialRecordRepository, userRepository);
+    }
+
+    @Bean
+    public DashboardService dashboardService(FinancialRecordRepository financialRecordRepository,
+                                             UserRepository userRepository){
+        return new DashboardServiceImpl(financialRecordRepository, userRepository);
     }
 
     @Bean

@@ -10,6 +10,8 @@ import java.util.UUID;
 
 public interface FinancialRecordRepository extends JpaRepository<FinancialRecordEntity, UUID> {
     Page<FinancialRecordEntity> findByUserId(UUID userId, Pageable pageable);
-    List<FinancialRecordEntity> findByUser_IdAndIsActiveTrue(UUID userId);
     List<FinancialRecordEntity> findByIsActiveTrue();
+    Page<FinancialRecordEntity> findByUserIdAndIsActiveTrue(UUID userId, Pageable pageable);
+    Page<FinancialRecordEntity> findByIsActiveTrue(Pageable pageable);
+    List<FinancialRecordEntity> findByUserIdAndIsActiveTrue(UUID userId);
 }
