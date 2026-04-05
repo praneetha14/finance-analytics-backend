@@ -1,6 +1,7 @@
 package com.finance.analytics.repository;
 
 import com.finance.analytics.entity.FinancialRecordEntity;
+import com.finance.analytics.entity.UserEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +15,5 @@ public interface FinancialRecordRepository extends JpaRepository<FinancialRecord
     Page<FinancialRecordEntity> findByUserIdAndIsActiveTrue(UUID userId, Pageable pageable);
     Page<FinancialRecordEntity> findByIsActiveTrue(Pageable pageable);
     List<FinancialRecordEntity> findByUserIdAndIsActiveTrue(UUID userId);
+    Page<FinancialRecordEntity> findByUserAndIsActiveTrue(UserEntity user, Pageable pageable);
 }

@@ -2,13 +2,16 @@ package com.finance.analytics.service.impl;
 
 import com.finance.analytics.entity.FinancialRecordEntity;
 import com.finance.analytics.entity.UserEntity;
+import com.finance.analytics.entity.UserRolesEntity;
 import com.finance.analytics.exception.ResourceNotFoundException;
 import com.finance.analytics.model.vo.DashboardSummaryVO;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
+import com.finance.analytics.model.vo.RoleResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
 import com.finance.analytics.model.vo.UserResponseVO;
 import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.UserRepository;
+import com.finance.analytics.repository.UserRoleRepository;
 import com.finance.analytics.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -22,12 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
     private final FinancialRecordRepository financialRecordRepository;
     private final UserRepository userRepository;
+    private final UserRoleRepository userRoleRepository;
 
     @Override
     public SuccessResponseVO<List<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId) {
@@ -47,6 +52,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         return SuccessResponseVO.of(200, "Records fetched successfully", financialRecordResponseVOS);
     }
+
 
     @Override
     public SuccessResponseVO<Page<FinancialRecordResponseVO>> getAllRecords(int page, int size) {
@@ -110,23 +116,33 @@ public class DashboardServiceImpl implements DashboardService {
     public SuccessResponseVO<Page<UserResponseVO>> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<UserEntity> userEntities = userRepository.findByIsActiveTrue(pageable);
-        List<UserResponseVO> userResponseVOS = new ArrayList<>();
-        for(UserEntity userEntity: userEntities.getContent()){
-            UserResponseVO userResponseVO = new UserResponseVO(
-                    userEntity.getId(),
-                    userEntity.getFirstName(),
-                    userEntity.getLastName(),
-                    userEntity.getMobile(),
-                    userEntity.getEmail()
-            );
-            userResponseVOS.add(userResponseVO);
-        }
+        List<UserResponseVO> userResponseVOS = userEntities.getContent().stream()
+                .map(this::mapToVO)
+                .collect(Collectors.toList());
+                
         Page<UserResponseVO> userResponseVOPage = new PageImpl<>(
                 userResponseVOS,
                 pageable,
                 userEntities.getTotalElements()
         );
         return SuccessResponseVO.of(200, "All Users fetched successfully", userResponseVOPage);
+    }
+
+    private UserResponseVO mapToVO(UserEntity entity) {
+        List<UserRolesEntity> userRoles = userRoleRepository.findByUser(entity);
+        List<RoleResponseVO> roles = userRoles.stream()
+                .map(ur -> new RoleResponseVO(ur.getRole().getId(), ur.getRole().getRoleName()))
+                .collect(Collectors.toList());
+        
+        return new UserResponseVO(
+                entity.getId(),
+                entity.getFirstName(),
+                entity.getLastName(),
+                entity.getMobile(),
+                entity.getEmail(),
+                entity.getIsActive(),
+                roles
+        );
     }
 
     private void validateUser(UUID userId) {

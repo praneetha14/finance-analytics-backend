@@ -15,7 +15,8 @@ import java.util.UUID;
 @Table(name = "permissions_entity")
 @Getter
 @Setter
-public class PermissionsEntity {
+public class
+PermissionsEntity {
 
     @Id
     @GeneratedValue

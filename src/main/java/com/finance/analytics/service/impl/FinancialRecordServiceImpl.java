@@ -12,6 +12,8 @@ import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.UserRepository;
 import com.finance.analytics.service.FinancialRecordService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,20 +25,28 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     private final UserRepository userRepository;
 
     @Override
+    public SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId) {
+        FinancialRecordEntity record = financialRecordRepository.findById(recordId)
+                .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+        return SuccessResponseVO.of(200, "Record fetched successfully", mapToVO(record));
+    }
+
+    @Override
+    public SuccessResponseVO<Page<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId, Pageable pageable) {
+        UserEntity user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        Page<FinancialRecordResponseVO> records = financialRecordRepository.findByUserAndIsActiveTrue(user, pageable)
+                .map(this::mapToVO);
+        return SuccessResponseVO.of(200, "Records fetched successfully", records);
+    }
+
+    @Override
     public SuccessResponseVO<FinancialRecordResponseVO> createRecord(UUID userId, CreateRecordDTO createRecordDTO) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found"));
         FinancialRecordEntity financialRecordEntity = mapToEntity(userEntity, createRecordDTO);
         financialRecordEntity = financialRecordRepository.save(financialRecordEntity);
-        FinancialRecordResponseVO financialRecordResponseVO = new FinancialRecordResponseVO(
-                financialRecordEntity.getId(),
-                financialRecordEntity.getRecordType(),
-                financialRecordEntity.getAmount(),
-                financialRecordEntity.getCategory(),
-                financialRecordEntity.getDescription(),
-                financialRecordEntity.getCreatedAt()
-        );
-        return SuccessResponseVO.of(201, "Record created successfully", financialRecordResponseVO);
+        return SuccessResponseVO.of(201, "Record created successfully", mapToVO(financialRecordEntity));
     }
 
     @Override
@@ -66,15 +76,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
             financialRecordEntity.setDescription(updateRecordDTO.getDescription());
         }
         financialRecordEntity = financialRecordRepository.save(financialRecordEntity);
-        FinancialRecordResponseVO financialRecordResponseVO = new FinancialRecordResponseVO(
-                financialRecordEntity.getId(),
-                financialRecordEntity.getRecordType(),
-                financialRecordEntity.getAmount(),
-                financialRecordEntity.getCategory(),
-                financialRecordEntity.getDescription(),
-                financialRecordEntity.getCreatedAt()
-        );
-        return SuccessResponseVO.of(200, "Record updated successfully", financialRecordResponseVO);
+        return SuccessResponseVO.of(200, "Record updated successfully", mapToVO(financialRecordEntity));
     }
 
     @Override
@@ -86,6 +88,17 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         }
         financialRecordEntity.setIsActive(Boolean.FALSE);
         financialRecordRepository.save(financialRecordEntity);
+    }
+
+    private FinancialRecordResponseVO mapToVO(FinancialRecordEntity entity) {
+        return new FinancialRecordResponseVO(
+                entity.getId(),
+                entity.getRecordType(),
+                entity.getAmount(),
+                entity.getCategory(),
+                entity.getDescription(),
+                entity.getCreatedAt()
+        );
     }
 
     private FinancialRecordEntity mapToEntity(UserEntity userEntity, CreateRecordDTO createRecordDTO) {

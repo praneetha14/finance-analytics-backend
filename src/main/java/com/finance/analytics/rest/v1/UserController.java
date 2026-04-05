@@ -6,40 +6,64 @@ import com.finance.analytics.model.vo.UserResponseVO;
 import com.finance.analytics.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("api/v1/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping("/create")
+    @PreAuthorize("hasAuthority('USER_WRITE')")
     public ResponseEntity<SuccessResponseVO<UserResponseVO>> createUser(@Valid @RequestBody CreateUserDTO createUserDTO) {
         return new ResponseEntity<>(userService.createUser(createUserDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{userId}")
+    @PreAuthorize("hasAuthority('USER_WRITE')")
     public ResponseEntity<SuccessResponseVO<UserResponseVO>> updateUser(@PathVariable UUID userId,
-                                                                        @RequestBody CreateUserDTO createUserDTO) {
+                                                                        @Valid @RequestBody CreateUserDTO createUserDTO) {
         return ResponseEntity.ok(userService.updateUser(userId, createUserDTO));
     }
 
     @DeleteMapping("/delete/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteUser(@PathVariable UUID userId) {
+    @PreAuthorize("hasAuthority('USER_DELETE')")
+    public ResponseEntity<SuccessResponseVO<Void>> deleteUser(@PathVariable UUID userId) {
         userService.deleteUser(userId);
+        return ResponseEntity.ok(SuccessResponseVO.of(200, "User deleted successfully", null));
+    }
+
+    @GetMapping("/{userId}")
+    @PreAuthorize("hasAuthority('USER_READ')")
+    public ResponseEntity<SuccessResponseVO<UserResponseVO>> getUserById(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.getUserById(userId));
+    }
+
+    @GetMapping
+    @PreAuthorize("hasAuthority('USER_READ')")
+    public ResponseEntity<SuccessResponseVO<Page<UserResponseVO>>> getAllUsers(Pageable pageable) {
+        return ResponseEntity.ok(userService.getAllUsers(pageable));
+    }
+
+    @PatchMapping("/{userId}/toggle-status")
+    @PreAuthorize("hasAuthority('USER_WRITE')")
+    public ResponseEntity<SuccessResponseVO<UserResponseVO>> toggleUserStatus(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.toggleUserStatus(userId));
+    }
+
+    @PostMapping("/{userId}/assign-roles")
+    @PreAuthorize("hasAuthority('USER_WRITE')")
+    public ResponseEntity<SuccessResponseVO<UserResponseVO>> assignRoles(@PathVariable UUID userId, @RequestBody List<UUID> roleIds) {
+        return ResponseEntity.ok(userService.assignRoles(userId, roleIds));
     }
 }
