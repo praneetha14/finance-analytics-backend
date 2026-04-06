@@ -57,13 +57,3 @@ A robust Spring Boot microservice for financial tracking, providing real-time an
 - `POST /api/v1/users/{userId}/assign-roles`: Update roles for a specific user.
 
 ---
-
-## 🛡 Security & Error Handling
-
-| Status Code | Description | Error Handling Behavior |
-| :--- | :--- | :--- |
-| **200/201** | Success | Returns the requested resource or success VO. |
-| **400** | Validation/Input | Returns **all** field errors at once in a JSON map. |
-| **401** | Unauthorized | Friendly message for invalid credentials or missing tokens. |
-| **403** | Forbidden | Clear message for missing permissions (Access Denied). |
-| **409** | Conflict/Duplicate | Triggered by the 60-second duplicate record check. |
