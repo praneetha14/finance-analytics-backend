@@ -1,20 +1,4 @@
-#!/bin/sh
-
-#
-# Copyright 2015 the original author or authors.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      https://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+#!/usr/bin/env bash
 
 ##############################################################################
 ##
@@ -44,7 +28,7 @@ APP_NAME="Gradle"
 APP_BASE_NAME=`basename "$0"`
 
 # Add default JVM options here. You can also use JAVA_OPTS and GRADLE_OPTS to pass JVM options to this script.
-DEFAULT_JVM_OPTS='"-Xmx64m" "-Xms64m"'
+DEFAULT_JVM_OPTS=("-Xmx64m" "-Xms64m")
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
@@ -117,54 +101,12 @@ if [ "$cygwin" = "false" -a "$msys" = "false" -a "$nonstop" = "false" ] ; then
     fi
 fi
 
-# For Cygwin, switch paths to Windows format before running java
-if $cygwin ; then
-    APP_HOME=`cygpath --path --windows "$APP_HOME"`
-    CLASSPATH=`cygpath --path --windows "$CLASSPATH"`
-    JAVACMD=`cygpath --unix "$JAVACMD"`
-
-    # We build the pattern for arguments to be converted via cygpath
-    ROOTDIRSRAW=`find / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
-    SEP=""
-    for dir in $ROOTDIRSRAW ; do
-        ROOTDIRS="$ROOTDIRS$SEP$dir"
-        SEP="|"
-    done
-    OURCYGPATTERN="(^($ROOTDIRS))"
-    # Add a user-defined pattern to the cygpath arguments
-    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
-        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
-    fi
-    # Now use the pattern to translate the arguments
-    collect () {
-        arg=$1
-        if echo "$arg" | grep -E -e "$OURCYGPATTERN" >/dev/null ; then
-            arg=`cygpath --path --windows "$arg"`
-        fi
-        eval "$2+=( \"\$arg\" )"
-    }
-else
-    collect () {
-        eval "$2+=( \"\$1\" )"
-    }
-fi
-
-# Collect all arguments for the java command, following the shell quoting and substitution rules
-eval "set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS"
-
-for arg do
-    collect "$arg" JVM_OPTS
-done
-
-eval "set -- \"\$@\""
-
-for arg do
-    collect "$arg" GRADLE_OPTS
-done
+# Collect all arguments for the java command
+eval "set -- ${DEFAULT_JVM_OPTS[@]} $JAVA_OPTS $GRADLE_OPTS"
 
 # Execute Gradle
 exec "$JAVACMD" \
-    "${JVM_OPTS[@]}" \
+    "$@" \
     -classpath "$CLASSPATH" \
     org.gradle.wrapper.GradleWrapperMain \
     "$@"
