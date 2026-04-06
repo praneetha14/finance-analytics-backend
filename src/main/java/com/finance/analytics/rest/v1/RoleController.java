@@ -19,32 +19,32 @@ public class RoleController {
 
     private final RoleService roleService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
     public ResponseEntity<RoleResponseVO> createRole(@RequestBody RoleRequestDTO roleRequestDTO) {
         return new ResponseEntity<>(roleService.createRole(roleRequestDTO), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
     public ResponseEntity<RoleResponseVO> updateRole(@PathVariable UUID id, @RequestBody RoleRequestDTO roleRequestDTO) {
         return ResponseEntity.ok(roleService.updateRole(id, roleRequestDTO));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
     public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
         roleService.deleteRole(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/getRole/{id}")
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<RoleResponseVO> getRoleById(@PathVariable UUID id) {
         return ResponseEntity.ok(roleService.getRoleById(id));
     }
 
-    @GetMapping
+    @GetMapping("/getAllRoles")
     @PreAuthorize("hasAuthority('ROLE_READ')")
     public ResponseEntity<List<RoleResponseVO>> getAllRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());

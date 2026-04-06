@@ -16,8 +16,11 @@ import com.finance.analytics.service.impl.FinancialRecordServiceImpl;
 import com.finance.analytics.service.impl.PermissionServiceImpl;
 import com.finance.analytics.service.impl.RoleServiceImpl;
 import com.finance.analytics.service.impl.UserServiceImpl;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -63,9 +66,20 @@ public class FinanceAnalyticsAutoConfiguration {
 
     @Bean
     public OpenAPI openAPI() {
-        OpenAPI openAPI = new OpenAPI();
-        openAPI.servers(List.of(new Server().url("http://localhost:8080")));
-        openAPI.info(new Info().title("Finance Analytics API").version("1.0"));
-        return openAPI;
+
+        return new OpenAPI()
+                .servers(List.of(new Server().url("http://localhost:8080")))
+                .info(new Info()
+                        .title("Finance Analytics API")
+                        .version("1.0"))
+                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                .components(new Components()
+                        .addSecuritySchemes("bearerAuth",
+                                new SecurityScheme()
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("JWT")
+                        )
+                );
     }
 }

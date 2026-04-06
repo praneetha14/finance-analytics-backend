@@ -30,6 +30,10 @@ public class CreateUserDTO {
 
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
+    @Pattern(
+            regexp = "^[a-zA-Z0-9._%+-]+@(gmail\\.com|email\\.com|yahoo\\.com)$",
+            message = "Email must end with @gmail.com, @email.com, or @yahoo.com"
+    )
     private String email;
 
     @NotBlank(message = "Password is required")

@@ -27,6 +27,19 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Service;
+
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
@@ -38,38 +51,20 @@ public class DashboardServiceImpl implements DashboardService {
     public SuccessResponseVO<List<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId) {
         validateUser(userId);
         List<FinancialRecordEntity> financialRecordEntities = financialRecordRepository.findByUserIdAndIsActiveTrue(userId);
-        List<FinancialRecordResponseVO> financialRecordResponseVOS = new ArrayList<>();
-        for (FinancialRecordEntity financialRecordEntity : financialRecordEntities) {
-            FinancialRecordResponseVO financialRecordResponseVO = new FinancialRecordResponseVO(
-                    financialRecordEntity.getId(),
-                    financialRecordEntity.getRecordType(),
-                    financialRecordEntity.getAmount(),
-                    financialRecordEntity.getCategory(),
-                    financialRecordEntity.getDescription(),
-                    financialRecordEntity.getCreatedAt()
-            );
-            financialRecordResponseVOS.add(financialRecordResponseVO);
-        }
+        List<FinancialRecordResponseVO> financialRecordResponseVOS = financialRecordEntities.stream()
+                .map(this::mapRecordToVO)
+                .collect(Collectors.toList());
         return SuccessResponseVO.of(200, "Records fetched successfully", financialRecordResponseVOS);
     }
-
 
     @Override
     public SuccessResponseVO<Page<FinancialRecordResponseVO>> getAllRecords(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<FinancialRecordEntity> financialRecordEntities = financialRecordRepository.findByIsActiveTrue(pageable);
-        List<FinancialRecordResponseVO> financialRecordResponseVOS = new ArrayList<>();
-        for(FinancialRecordEntity financialRecordEntity: financialRecordEntities.getContent()){
-            FinancialRecordResponseVO financialRecordResponseVO = new FinancialRecordResponseVO(
-                    financialRecordEntity.getId(),
-                    financialRecordEntity.getRecordType(),
-                    financialRecordEntity.getAmount(),
-                    financialRecordEntity.getCategory(),
-                    financialRecordEntity.getDescription(),
-                    financialRecordEntity.getCreatedAt()
-            );
-            financialRecordResponseVOS.add(financialRecordResponseVO);
-        }
+        List<FinancialRecordResponseVO> financialRecordResponseVOS = financialRecordEntities.getContent().stream()
+                .map(this::mapRecordToVO)
+                .collect(Collectors.toList());
+        
         Page<FinancialRecordResponseVO> financialRecordResponseVOPage =
                 new PageImpl<>(
                         financialRecordResponseVOS,
@@ -82,34 +77,60 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public SuccessResponseVO<DashboardSummaryVO> getSummaryByUserId(UUID userId) {
         validateUser(userId);
-        List<FinancialRecordEntity> financialRecordEntities = financialRecordRepository.findByUserIdAndIsActiveTrue(userId);
+        List<FinancialRecordEntity> records = financialRecordRepository.findByUserIdAndIsActiveTrue(userId);
+        
         Double totalIncome = 0.0;
         Double totalExpense = 0.0;
         Map<String, Double> categoryWiseIncome = new HashMap<>();
-        for (FinancialRecordEntity financialRecordEntity : financialRecordEntities) {
-            Double amount = financialRecordEntity.getAmount();
-            if (financialRecordEntity.getRecordType().name().equals("INCOME")) {
+        Map<String, Double> categoryWiseExpenses = new HashMap<>();
+        Map<String, Double> monthlyTrends = new TreeMap<>(); // TreeMap keeps months sorted
+        
+        DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
+
+        for (FinancialRecordEntity record : records) {
+            Double amount = record.getAmount();
+            String category = normalizeCategory(record.getCategory());
+            String month = record.getCreatedAt().format(monthFormatter);
+
+            if ("INCOME".equals(record.getRecordType().name())) {
                 totalIncome += amount;
-                String category = normalizeCategory(financialRecordEntity.getCategory());
-                categoryWiseIncome.put(
-                        category,
-                        categoryWiseIncome.getOrDefault(category, 0.0) + amount
-                );
+                categoryWiseIncome.put(category, categoryWiseIncome.getOrDefault(category, 0.0) + amount);
+                monthlyTrends.put(month, monthlyTrends.getOrDefault(month, 0.0) + amount);
             } else {
                 totalExpense += amount;
+                categoryWiseExpenses.put(category, categoryWiseExpenses.getOrDefault(category, 0.0) + amount);
+                monthlyTrends.put(month, monthlyTrends.getOrDefault(month, 0.0) - amount);
             }
         }
 
-        double totalBalance = totalIncome - totalExpense;
+        List<FinancialRecordResponseVO> recentActivity = records.stream()
+                .sorted(Comparator.comparing(FinancialRecordEntity::getCreatedAt).reversed())
+                .limit(5)
+                .map(this::mapRecordToVO)
+                .collect(Collectors.toList());
 
-        DashboardSummaryVO dashboardSummaryVO = new DashboardSummaryVO(
+        DashboardSummaryVO summary = new DashboardSummaryVO(
                 totalIncome,
                 totalExpense,
-                totalBalance,
-                categoryWiseIncome
+                totalIncome - totalExpense,
+                categoryWiseIncome,
+                categoryWiseExpenses,
+                recentActivity,
+                monthlyTrends
         );
 
-        return SuccessResponseVO.of(200, "Summary fetched successfully", dashboardSummaryVO);
+        return SuccessResponseVO.of(200, "Summary fetched successfully", summary);
+    }
+
+    private FinancialRecordResponseVO mapRecordToVO(FinancialRecordEntity entity) {
+        return new FinancialRecordResponseVO(
+                entity.getId(),
+                entity.getRecordType(),
+                entity.getAmount(),
+                entity.getCategory(),
+                entity.getDescription(),
+                entity.getCreatedAt()
+        );
     }
 
     @Override

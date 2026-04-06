@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDateTime;
+
 @RestController
 @RequestMapping("/api/v1/records")
 @RequiredArgsConstructor
@@ -47,5 +50,17 @@ public class FinancialRecordController {
     @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
     public ResponseEntity<SuccessResponseVO<FinancialRecordResponseVO>> getRecordById(@PathVariable UUID recordId) {
         return ResponseEntity.ok(financialRecordService.getRecordById(recordId));
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
+    public ResponseEntity<SuccessResponseVO<Page<FinancialRecordResponseVO>>> getFilteredRecords(
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false) String type,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            Pageable pageable) {
+        return ResponseEntity.ok(financialRecordService.getFilteredRecords(userId, type, category, startDate, endDate, pageable));
     }
 }

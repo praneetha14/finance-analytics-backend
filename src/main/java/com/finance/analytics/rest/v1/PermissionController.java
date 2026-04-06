@@ -19,32 +19,32 @@ public class PermissionController {
 
     private final PermissionService permissionService;
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAuthority('PERMISSION_WRITE')")
     public ResponseEntity<PermissionResponseVO> createPermission(@RequestBody PermissionRequestDTO requestDTO) {
         return new ResponseEntity<>(permissionService.createPermission(requestDTO), HttpStatus.CREATED);
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/getPermission/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_WRITE')")
     public ResponseEntity<PermissionResponseVO> updatePermission(@PathVariable UUID id, @RequestBody PermissionRequestDTO requestDTO) {
         return ResponseEntity.ok(permissionService.updatePermission(id, requestDTO));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/deletePermission/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_WRITE')")
     public ResponseEntity<Void> deletePermission(@PathVariable UUID id) {
         permissionService.deletePermission(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/get/{id}")
     @PreAuthorize("hasAuthority('PERMISSION_READ')")
     public ResponseEntity<PermissionResponseVO> getPermissionById(@PathVariable UUID id) {
         return ResponseEntity.ok(permissionService.getPermissionById(id));
     }
 
-    @GetMapping
+    @GetMapping("/getAllPermissionRead")
     @PreAuthorize("hasAuthority('PERMISSION_READ')")
     public ResponseEntity<List<PermissionResponseVO>> getAllPermissions() {
         return ResponseEntity.ok(permissionService.getAllPermissions());
