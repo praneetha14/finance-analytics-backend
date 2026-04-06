@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -135,12 +136,12 @@ public class FinancialRecordServiceTest extends AbstractTest {
         createDTO2.setCategory("Food");
         financialRecordService.createRecord(testUser.getId(), createDTO2);
 
-        SuccessResponseVO<Page<FinancialRecordResponseVO>> response = financialRecordService.getFilteredRecords(
+        SuccessResponseVO<List<FinancialRecordResponseVO>> response = financialRecordService.getFilteredRecords(
                 testUser.getId(), "INCOME", null, null, null, 0, 10, "DESC");
 
         assertNotNull(response, ASSERTION_ERROR_MESSAGE);
-        assertEquals(1, response.getData().getTotalElements(), ASSERTION_ERROR_MESSAGE);
-        assertEquals("income", response.getData().getContent().get(0).recordTypeEnum().name().toLowerCase(), ASSERTION_ERROR_MESSAGE);
+        assertEquals(1, response.getPagination().getTotalCount(), ASSERTION_ERROR_MESSAGE);
+        assertEquals("income", response.getData().get(0).recordTypeEnum().name().toLowerCase(), ASSERTION_ERROR_MESSAGE);
     }
 
     @Test

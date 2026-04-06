@@ -72,7 +72,7 @@ public class DashboardControllerTest {
 
         mockMvc.perform(get("/api/v1/dashboard/records/all"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.content[0].userId").value(userId.toString()));
+                .andExpect(jsonPath("$.data[0].userId").value(userId.toString()));
     }
 
     private void setupSecurityContext(UUID userId, String email, List<String> authorities) {

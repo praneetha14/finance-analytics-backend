@@ -32,7 +32,7 @@ public class DashboardController {
 
     @GetMapping("/records/all")
     @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ') and !@securityUtils.isViewer(authentication)")
-    public ResponseEntity<SuccessResponseVO<Page<FinancialRecordResponseVO>>> getAllRecords(
+    public ResponseEntity<SuccessResponseVO<List<FinancialRecordResponseVO>>> getAllRecords(
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "0"))
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @Parameter(description = "Page size", schema = @Schema(defaultValue = "10"))
@@ -50,7 +50,7 @@ public class DashboardController {
 
     @GetMapping("/getAllUsers")
     @PreAuthorize("hasAuthority('USER_READ')")
-    public ResponseEntity<SuccessResponseVO<Page<UserResponseVO>>> getAllUsers(
+    public ResponseEntity<SuccessResponseVO<List<UserResponseVO>>> getAllUsers(
             @Parameter(description = "Page number", schema = @Schema(defaultValue = "0"))
             @RequestParam(required = false, defaultValue = "0") Integer page,
             @Parameter(description = "Page size", schema = @Schema(defaultValue = "10"))

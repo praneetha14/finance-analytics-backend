@@ -13,13 +13,14 @@ import com.finance.analytics.service.DashboardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DashboardServiceTest extends AbstractTest {
 
@@ -85,9 +86,9 @@ public class DashboardServiceTest extends AbstractTest {
 
     @Test
     void getAllRecordsSuccessTest() {
-        SuccessResponseVO<Page<FinancialRecordResponseVO>> response = dashboardService.getAllRecords(0, 10);
+        SuccessResponseVO<List<FinancialRecordResponseVO>> response = dashboardService.getAllRecords(0, 10);
 
         assertNotNull(response, ASSERTION_ERROR_MESSAGE);
-        assertTrue(response.getData().getTotalElements() >= 2, ASSERTION_ERROR_MESSAGE);
+        assertTrue(response.getPagination().getTotalCount() >= 2, ASSERTION_ERROR_MESSAGE);
     }
 }

@@ -9,6 +9,7 @@ import com.finance.analytics.model.dto.CreateRecordDTO;
 import com.finance.analytics.model.dto.UpdateRecordDTO;
 import com.finance.analytics.model.enums.RecordTypeEnum;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
+import com.finance.analytics.model.vo.PaginationResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
 import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.UserRepository;
@@ -25,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class FinancialRecordServiceImpl implements FinancialRecordService {
@@ -113,7 +115,7 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     }
 
     @Override
-    public SuccessResponseVO<Page<FinancialRecordResponseVO>> getFilteredRecords(
+    public SuccessResponseVO<List<FinancialRecordResponseVO>> getFilteredRecords(
             UUID userId, String type, String category,
             LocalDateTime startDate, LocalDateTime endDate,
             Integer page, Integer size, String sort) {
@@ -150,8 +152,12 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         Page<FinancialRecordEntity> records = financialRecordRepository.findWithFilters(
                 userId, typeEnum, category, startDate, endDate, pageable);
 
-        Page<FinancialRecordResponseVO> responsePage = records.map(this::mapToVO);
-        return SuccessResponseVO.of(200, "Filtered records fetched successfully", responsePage);
+        List<FinancialRecordResponseVO> responseList = records.getContent().stream()
+                .map(this::mapToVO)
+                .collect(Collectors.toList());
+
+        PaginationResponseVO pagination = new PaginationResponseVO(page, size, records.getTotalElements());
+        return SuccessResponseVO.of(200, "Filtered records fetched successfully", responseList, pagination);
     }
 
     @Override

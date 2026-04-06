@@ -14,9 +14,9 @@ public interface DashboardService {
 
     SuccessResponseVO<List<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId);
 
-    SuccessResponseVO<Page<FinancialRecordResponseVO>> getAllRecords(int page, int size);
+    SuccessResponseVO<List<FinancialRecordResponseVO>> getAllRecords(int page, int size);
 
     SuccessResponseVO<DashboardSummaryVO> getSummaryByUserId(UUID userId);
 
-    SuccessResponseVO<Page<UserResponseVO>> getAllUsers(int page, int size);
+    SuccessResponseVO<List<UserResponseVO>> getAllUsers(int page, int size);
 }

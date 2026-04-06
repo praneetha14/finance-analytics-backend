@@ -4,9 +4,7 @@ import com.finance.analytics.model.dto.CreateRecordDTO;
 import com.finance.analytics.model.dto.UpdateRecordDTO;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
+import java.util.List;
 import java.util.UUID;
 
 import com.finance.analytics.model.enums.RecordTypeEnum;
@@ -17,7 +15,7 @@ public interface FinancialRecordService {
     SuccessResponseVO<FinancialRecordResponseVO> updateRecord(UUID recordId, UpdateRecordDTO updateRecordDTO);
     void deleteRecord(UUID recordId);
     SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId);
-    SuccessResponseVO<Page<FinancialRecordResponseVO>> getFilteredRecords(
+    SuccessResponseVO<List<FinancialRecordResponseVO>> getFilteredRecords(
             UUID userId, String type, String category,
             LocalDateTime startDate, LocalDateTime endDate,
             Integer page, Integer size, String sort);

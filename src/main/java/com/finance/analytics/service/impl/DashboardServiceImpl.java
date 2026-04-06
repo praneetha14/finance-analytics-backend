@@ -6,6 +6,7 @@ import com.finance.analytics.entity.UserRolesEntity;
 import com.finance.analytics.exception.ResourceNotFoundException;
 import com.finance.analytics.model.vo.DashboardSummaryVO;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
+import com.finance.analytics.model.vo.PaginationResponseVO;
 import com.finance.analytics.model.vo.RoleResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
 import com.finance.analytics.model.vo.UserResponseVO;
@@ -62,20 +63,15 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public SuccessResponseVO<Page<FinancialRecordResponseVO>> getAllRecords(int page, int size) {
+    public SuccessResponseVO<List<FinancialRecordResponseVO>> getAllRecords(int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<FinancialRecordEntity> financialRecordEntities = financialRecordRepository.findByIsActiveTrue(pageable);
         List<FinancialRecordResponseVO> financialRecordResponseVOS = financialRecordEntities.getContent().stream()
                 .map(this::mapRecordToVO)
                 .collect(Collectors.toList());
 
-        Page<FinancialRecordResponseVO> financialRecordResponseVOPage =
-                new PageImpl<>(
-                        financialRecordResponseVOS,
-                        pageable,
-                        financialRecordEntities.getTotalElements()
-                );
-        return SuccessResponseVO.of(200, "All Records fetched successfully", financialRecordResponseVOPage);
+        PaginationResponseVO pagination = new PaginationResponseVO(page, size, financialRecordEntities.getTotalElements());
+        return SuccessResponseVO.of(200, "All Records fetched successfully", financialRecordResponseVOS, pagination);
     }
 
     @Override
@@ -139,19 +135,15 @@ public class DashboardServiceImpl implements DashboardService {
     }
 
     @Override
-    public SuccessResponseVO<Page<UserResponseVO>> getAllUsers(int page, int size) {
+    public SuccessResponseVO<List<UserResponseVO>> getAllUsers(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<UserEntity> userEntities = userRepository.findByIsActiveTrue(pageable);
         List<UserResponseVO> userResponseVOS = userEntities.getContent().stream()
                 .map(this::mapToVO)
                 .collect(Collectors.toList());
 
-        Page<UserResponseVO> userResponseVOPage = new PageImpl<>(
-                userResponseVOS,
-                pageable,
-                userEntities.getTotalElements()
-        );
-        return SuccessResponseVO.of(200, "All Users fetched successfully", userResponseVOPage);
+        PaginationResponseVO pagination = new PaginationResponseVO(page, size, userEntities.getTotalElements());
+        return SuccessResponseVO.of(200, "All Users fetched successfully", userResponseVOS, pagination);
     }
 
     private UserResponseVO mapToVO(UserEntity entity) {
