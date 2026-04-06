@@ -6,5 +6,5 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record FinancialRecordResponseVO(UUID id, RecordTypeEnum recordTypeEnum, Double amount,
-                                        String category, String description, LocalDateTime createdAt) {
+                                        String category, String description, LocalDateTime createdAt, UUID userId) {
 }

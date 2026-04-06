@@ -1,8 +1,21 @@
 package com.finance.analytics.model.vo;
 
-import java.util.Map;
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-public record DashboardSummaryVO(Double totalIncome, Double totalExpense, Double totalBalance,
-                                 Map<String, Double> categoryWiseIncome) {
+import java.util.List;
+import java.util.Map;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class DashboardSummaryVO {
+    private Double totalIncome;
+    private Double totalExpenses;
+    private Double balance;
+    private Map<String, Double> categoryWiseIncome;
+    private Map<String, Double> categoryWiseExpenses;
+    private List<FinancialRecordResponseVO> recentActivity;
+    private Map<String, Double> monthlyTrends;
 }
