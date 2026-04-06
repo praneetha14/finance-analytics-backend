@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
+import com.finance.analytics.model.vo.SuccessResponseVO;
+
 @RestController
 @RequestMapping("/api/v1/roles")
 @RequiredArgsConstructor
@@ -21,32 +23,32 @@ public class RoleController {
 
     @PostMapping("/create")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
-    public ResponseEntity<RoleResponseVO> createRole(@RequestBody RoleRequestDTO roleRequestDTO) {
-        return new ResponseEntity<>(roleService.createRole(roleRequestDTO), HttpStatus.CREATED);
+    public ResponseEntity<SuccessResponseVO<RoleResponseVO>> createRole(@RequestBody RoleRequestDTO roleRequestDTO) {
+        return new ResponseEntity<>(SuccessResponseVO.of(HttpStatus.CREATED.value(), "Role created successfully", roleService.createRole(roleRequestDTO)), HttpStatus.CREATED);
     }
 
     @PutMapping("/update/{id}")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
-    public ResponseEntity<RoleResponseVO> updateRole(@PathVariable UUID id, @RequestBody RoleRequestDTO roleRequestDTO) {
-        return ResponseEntity.ok(roleService.updateRole(id, roleRequestDTO));
+    public ResponseEntity<SuccessResponseVO<RoleResponseVO>> updateRole(@PathVariable UUID id, @RequestBody RoleRequestDTO roleRequestDTO) {
+        return ResponseEntity.ok(SuccessResponseVO.of(200, "Role updated successfully", roleService.updateRole(id, roleRequestDTO)));
     }
 
     @DeleteMapping("/delete/{id}")
     @PreAuthorize("hasAuthority('ROLE_WRITE')")
-    public ResponseEntity<Void> deleteRole(@PathVariable UUID id) {
+    public ResponseEntity<SuccessResponseVO<Void>> deleteRole(@PathVariable UUID id) {
         roleService.deleteRole(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok(SuccessResponseVO.of(200, "Role deleted successfully", null));
     }
 
     @GetMapping("/getRole/{id}")
     @PreAuthorize("hasAuthority('ROLE_READ')")
-    public ResponseEntity<RoleResponseVO> getRoleById(@PathVariable UUID id) {
-        return ResponseEntity.ok(roleService.getRoleById(id));
+    public ResponseEntity<SuccessResponseVO<RoleResponseVO>> getRoleById(@PathVariable UUID id) {
+        return ResponseEntity.ok(SuccessResponseVO.of(200, "Role fetched successfully", roleService.getRoleById(id)));
     }
 
     @GetMapping("/getAllRoles")
     @PreAuthorize("hasAuthority('ROLE_READ')")
-    public ResponseEntity<List<RoleResponseVO>> getAllRoles() {
-        return ResponseEntity.ok(roleService.getAllRoles());
+    public ResponseEntity<SuccessResponseVO<List<RoleResponseVO>>> getAllRoles() {
+        return ResponseEntity.ok(SuccessResponseVO.of(200, "All roles fetched successfully", roleService.getAllRoles()));
     }
 }

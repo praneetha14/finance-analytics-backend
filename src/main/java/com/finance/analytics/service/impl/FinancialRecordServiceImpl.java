@@ -7,22 +7,25 @@ import com.finance.analytics.exception.InvalidInputException;
 import com.finance.analytics.exception.ResourceNotFoundException;
 import com.finance.analytics.model.dto.CreateRecordDTO;
 import com.finance.analytics.model.dto.UpdateRecordDTO;
+import com.finance.analytics.model.enums.RecordTypeEnum;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
-import com.finance.analytics.model.enums.RecordTypeEnum;
 import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.UserRepository;
+import com.finance.analytics.security.UserPrincipal;
 import com.finance.analytics.service.FinancialRecordService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
+import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-@Service
 @RequiredArgsConstructor
 public class FinancialRecordServiceImpl implements FinancialRecordService {
 
@@ -31,23 +34,25 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
 
     @Override
     public SuccessResponseVO<FinancialRecordResponseVO> createRecord(UUID userId, CreateRecordDTO createRecordDTO) {
+        checkViewerAccess(userId);
+
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+
         String normalizedCategory = createRecordDTO.getCategory().trim().toLowerCase();
         RecordTypeEnum typeEnum = RecordTypeEnum.valueOf(createRecordDTO.getRecordType().toUpperCase());
 
         LocalDateTime oneMinuteAgo = LocalDateTime.now().minusMinutes(1);
         List<FinancialRecordEntity> duplicates = financialRecordRepository.findDuplicateRecord(
-                userId, 
-                createRecordDTO.getAmount(), 
-                normalizedCategory, 
-                typeEnum, 
+                userId,
+                createRecordDTO.getAmount(),
+                normalizedCategory,
+                typeEnum,
                 oneMinuteAgo);
 
         if (!duplicates.isEmpty()) {
-            throw new DuplicateResourceException("A similar record for category '" + 
-                createRecordDTO.getCategory() + "' was already created. This might be a duplicate.");
+            throw new DuplicateResourceException("A similar record for category '" +
+                    createRecordDTO.getCategory() + "' was already created. This might be a duplicate.");
         }
 
         FinancialRecordEntity financialRecordEntity = new FinancialRecordEntity();
@@ -66,6 +71,10 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     public SuccessResponseVO<FinancialRecordResponseVO> updateRecord(UUID recordId, UpdateRecordDTO updateRecordDTO) {
         FinancialRecordEntity financialRecordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+
+        // Enforce that VIEWER can only update own records
+        checkViewerAccess(financialRecordEntity.getUser().getId());
+
         if (!Boolean.TRUE.equals(financialRecordEntity.getIsActive())) {
             throw new InvalidInputException("Record is already deleted");
         }
@@ -96,14 +105,29 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     public SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId) {
         FinancialRecordEntity recordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+
+        // Enforce that VIEWER can only see own record
+        checkViewerAccess(recordEntity.getUser().getId());
+
         return SuccessResponseVO.of(200, "Record fetched successfully", mapToVO(recordEntity));
     }
 
     @Override
     public SuccessResponseVO<Page<FinancialRecordResponseVO>> getFilteredRecords(
             UUID userId, String type, String category,
-            LocalDateTime startDate, LocalDateTime endDate, Pageable pageable) {
-        
+            LocalDateTime startDate, LocalDateTime endDate,
+            Integer page, Integer size, String sort) {
+
+        // If user is a VIEWER, force userId to be current user's ID
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal) {
+            boolean isViewer = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_VIEWER"));
+            if (isViewer) {
+                userId = principal.getId();
+            }
+        }
+
         RecordTypeEnum typeEnum = null;
         if (type != null && !type.isEmpty()) {
             try {
@@ -113,9 +137,19 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
             }
         }
 
+        // Validate and provide defaults for pagination
+        if (page == null || page < 0) page = 0;
+        if (size == null || size <= 0) size = 10;
+        Sort.Direction direction = Sort.Direction.DESC;
+        if (sort != null && sort.equalsIgnoreCase("ASC")) {
+            direction = Sort.Direction.ASC;
+        }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, "createdAt"));
+
         Page<FinancialRecordEntity> records = financialRecordRepository.findWithFilters(
                 userId, typeEnum, category, startDate, endDate, pageable);
-        
+
         Page<FinancialRecordResponseVO> responsePage = records.map(this::mapToVO);
         return SuccessResponseVO.of(200, "Filtered records fetched successfully", responsePage);
     }
@@ -124,11 +158,26 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     public void deleteRecord(UUID recordId) {
         FinancialRecordEntity financialRecordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+
+        // Enforce that VIEWER can only delete own records (though they shouldn't have delete permission anyway)
+        checkViewerAccess(financialRecordEntity.getUser().getId());
+
         if (!Boolean.TRUE.equals(financialRecordEntity.getIsActive())) {
             throw new ResourceNotFoundException("Record is not active");
         }
         financialRecordEntity.setIsActive(Boolean.FALSE);
         financialRecordRepository.save(financialRecordEntity);
+    }
+
+    private void checkViewerAccess(UUID userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal) {
+            boolean isViewer = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_VIEWER"));
+            if (isViewer && !principal.getId().equals(userId)) {
+                throw new com.finance.analytics.exception.UserUnauthorizedException("You are not authorized to access this user's data");
+            }
+        }
     }
 
     private FinancialRecordResponseVO mapToVO(FinancialRecordEntity entity) {
@@ -138,7 +187,8 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
                 entity.getAmount(),
                 entity.getCategory(),
                 entity.getDescription(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getUser() != null ? entity.getUser().getId() : null
         );
     }
 }

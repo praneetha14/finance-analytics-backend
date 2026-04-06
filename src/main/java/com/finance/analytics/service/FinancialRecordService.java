@@ -19,5 +19,6 @@ public interface FinancialRecordService {
     SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId);
     SuccessResponseVO<Page<FinancialRecordResponseVO>> getFilteredRecords(
             UUID userId, String type, String category,
-            LocalDateTime startDate, LocalDateTime endDate, Pageable pageable);
+            LocalDateTime startDate, LocalDateTime endDate,
+            Integer page, Integer size, String sort);
 }

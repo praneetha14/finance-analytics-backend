@@ -1,12 +1,12 @@
 package com.finance.analytics.service.impl;
 
+import com.finance.analytics.config.JwtUtils;
 import com.finance.analytics.entity.RoleEntity;
 import com.finance.analytics.entity.UserEntity;
 import com.finance.analytics.entity.UserRolesEntity;
 import com.finance.analytics.exception.DuplicateResourceException;
 import com.finance.analytics.exception.ResourceNotFoundException;
 import com.finance.analytics.model.dto.CreateUserDTO;
-import com.finance.analytics.config.JwtUtils;
 import com.finance.analytics.model.dto.LoginDTO;
 import com.finance.analytics.model.vo.AuthResponseVO;
 import com.finance.analytics.model.vo.RoleResponseVO;
@@ -18,8 +18,6 @@ import com.finance.analytics.repository.UserRoleRepository;
 import com.finance.analytics.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -28,7 +26,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +67,7 @@ public class UserServiceImpl implements UserService {
                 .collect(Collectors.toList()));
 
         String token = jwtUtils.generateToken(userDetails, extraClaims);
-        
+
         AuthResponseVO authResponseVO = new AuthResponseVO(token, mapToVO(userEntity));
         return SuccessResponseVO.of(200, "Login successful", authResponseVO);
     }
@@ -79,14 +76,14 @@ public class UserServiceImpl implements UserService {
     public SuccessResponseVO<UserResponseVO> createUser(CreateUserDTO createUserDTO) {
         log.info("Creating user with email: {}", createUserDTO.getEmail());
         validateUserUniqueness(createUserDTO.getEmail(), createUserDTO.getMobile(), null);
-        
+
         UserEntity userEntity = mapToEntity(createUserDTO);
         userEntity.setPassword(passwordEncoder.encode(createUserDTO.getPassword()));
         userEntity.setIsActive(true);
-        
+
         UserEntity savedUser = userRepository.save(userEntity);
         saveUserRoles(savedUser, createUserDTO.getRoles());
-        
+
         return SuccessResponseVO.of(201, "User created successfully", mapToVO(savedUser));
     }
 
@@ -95,25 +92,25 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user with id: {}", userId);
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+
         validateUserUniqueness(createUserDTO.getEmail(), createUserDTO.getMobile(), userId);
-        
+
         userEntity.setFirstName(createUserDTO.getFirstName());
         userEntity.setLastName(createUserDTO.getLastName());
         userEntity.setEmail(createUserDTO.getEmail());
         userEntity.setMobile(createUserDTO.getMobile());
-        
+
         if (createUserDTO.getPassword() != null && !createUserDTO.getPassword().isBlank()) {
             userEntity.setPassword(passwordEncoder.encode(createUserDTO.getPassword()));
         }
-        
+
         UserEntity updatedUser = userRepository.save(userEntity);
-        
+
         if (createUserDTO.getRoles() != null) {
             userRoleRepository.deleteByUser(updatedUser);
             saveUserRoles(updatedUser, createUserDTO.getRoles());
         }
-        
+
         return SuccessResponseVO.of(200, "User updated successfully", mapToVO(updatedUser));
     }
 
@@ -137,10 +134,10 @@ public class UserServiceImpl implements UserService {
     public SuccessResponseVO<UserResponseVO> assignRoles(UUID userId, List<UUID> roleIds) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        
+
         userRoleRepository.deleteByUser(userEntity);
         saveUserRoles(userEntity, roleIds);
-        
+
         return SuccessResponseVO.of(200, "Roles assigned successfully", mapToVO(userEntity));
     }
 
@@ -150,15 +147,15 @@ public class UserServiceImpl implements UserService {
                 throw new DuplicateResourceException("Email already exists");
             }
         });
-        
+
         // Mobile check (simplified)
         if (userRepository.existsByMobile(mobile)) {
-             UserEntity existing = userRepository.findAll().stream()
-                     .filter(u -> u.getMobile().equals(mobile))
-                     .findFirst().orElse(null);
-             if (existing != null && (userId == null || !existing.getId().equals(userId))) {
-                 throw new DuplicateResourceException("Mobile number already exists");
-             }
+            UserEntity existing = userRepository.findAll().stream()
+                    .filter(u -> u.getMobile().equals(mobile))
+                    .findFirst().orElse(null);
+            if (existing != null && (userId == null || !existing.getId().equals(userId))) {
+                throw new DuplicateResourceException("Mobile number already exists");
+            }
         }
     }
 
@@ -188,7 +185,7 @@ public class UserServiceImpl implements UserService {
         List<RoleResponseVO> roles = userRoles.stream()
                 .map(ur -> new RoleResponseVO(ur.getRole().getId(), ur.getRole().getRoleName()))
                 .collect(Collectors.toList());
-        
+
         return new UserResponseVO(
                 entity.getId(),
                 entity.getFirstName(),

@@ -5,19 +5,19 @@ import com.finance.analytics.model.dto.UpdateRecordDTO;
 import com.finance.analytics.model.vo.FinancialRecordResponseVO;
 import com.finance.analytics.model.vo.SuccessResponseVO;
 import com.finance.analytics.service.FinancialRecordService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.UUID;
-
-import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/records")
@@ -47,20 +47,25 @@ public class FinancialRecordController {
     }
 
     @GetMapping("/get/{recordId}")
-    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
+    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ') and @securityUtils.canAccessRecord(#recordId)")
     public ResponseEntity<SuccessResponseVO<FinancialRecordResponseVO>> getRecordById(@PathVariable UUID recordId) {
         return ResponseEntity.ok(financialRecordService.getRecordById(recordId));
     }
 
     @GetMapping("/search")
-    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
+    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ') and (#userId == null or @securityUtils.canAccessUser(#userId))")
     public ResponseEntity<SuccessResponseVO<Page<FinancialRecordResponseVO>>> getFilteredRecords(
             @RequestParam(required = false) UUID userId,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
-            Pageable pageable) {
-        return ResponseEntity.ok(financialRecordService.getFilteredRecords(userId, type, category, startDate, endDate, pageable));
+            @Parameter(description = "Page number", schema = @Schema(defaultValue = "0"))
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @Parameter(description = "Page size", schema = @Schema(defaultValue = "10"))
+            @RequestParam(required = false, defaultValue = "10") Integer size,
+            @Parameter(description = "Sort direction", schema = @Schema(allowableValues = {"ASC", "DESC"}, defaultValue = "DESC"))
+            @RequestParam(required = false, defaultValue = "DESC") String sort) {
+        return ResponseEntity.ok(financialRecordService.getFilteredRecords(userId, type, category, startDate, endDate, page, size, sort));
     }
 }

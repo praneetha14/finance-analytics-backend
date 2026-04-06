@@ -1,88 +1,69 @@
 # Finance Analytics Backend
 
-This microservice provides financial analytics for users, allowing them to track their income and expenses, 
-and providing summaries and detailed reports.
+A robust Spring Boot microservice for financial tracking, providing real-time analytics, automated category grouping, and secure role-based access.
 
-## Features
+## 🚀 Key Features
 
-- **JWT Authentication**: Secure API access using JSON Web Tokens.
-- **Role-Based Access Control (RBAC)**: Fine-grained permissions for different roles:
-    - **ADMIN**: Full access to all features, including user and role management.
-    - **ANALYST**: Access to view financial records and summaries for all users.
-    - **VIEWER**: Access to view own financial records and summaries.
-- **Financial Record Management**: Create, update, delete, and view financial records.
-- **Dashboard**: Get summaries of income, expenses, and balances, including category-wise breakdowns.
-- **User Management**: Admin can create, update, delete, and manage user roles.
+- **JWT Security**: Multi-layered security with Bearer Token authentication.
+- **Smart Validation**: Returns all input errors (mobile, email, amount, recordType, etc.) in a single, clean JSON response.
+- **Advanced Dashboard**: 
+    - **Category-wise Insights**: Breakdown of both Income and Expenses.
+    - **Monthly Trends**: Month-over-month balance tracking (e.g., "2024-03": 5000.0).
+    - **Recent Activity**: Quick view of the last 5 transactions.
+- **Intelligent Record Management**:
+    - **Advanced Search**: Filter records by Date Range, Category, Type, or User ID.
+    - **Duplicate Protection**: Prevents identical entries within a 60-second window.
+    - **Normalization**: Automatically groups "Food", "FOOD", and "food" into a single lowercase category.
+- **Role-Based Access (RBAC)**:
+    - **ADMIN**: Full management of Users, Roles, and Records.
+    - **ANALYST**: Access to all financial records and aggregated insights/trends.
+    - **VIEWER**: Read-only access to their own dashboard summaries.
 
-## Tech Stack
+---
 
-- **Java 17**
-- **Spring Boot 3.5.3**
-- **Spring Security** (with JWT)
-- **Spring Data JPA**
-- **MySQL** (or H2 for testing)
-- **Lombok**
-- **SpringDoc OpenAPI** (Swagger)
+## 🔑 Getting Started
 
-## Getting Started
-
-### Prerequisites
-
-- JDK 17
-- Gradle
-
-### Configuration
-
-The application can be configured via `src/main/resources/application.yml` or `application.properties`.
-
-Key configurations:
-- `jwt.secret`: Secret key for JWT signing.
-- `jwt.expiration`: Token expiration time in milliseconds.
-
-### Running the Application
-
-```bash
-./gradlew bootRun
-```
-
-The application will be available at `http://localhost:8080`.
-Swagger UI: `http://localhost:8080/swagger-ui.html`
-
-### Default Admin User
-
-On the first run, a default admin user is created:
+### 1. Default Admin Credentials
 - **Email**: `admin@finance.com`
 - **Password**: `Admin@123`
 
-## API Endpoints
+### 2. Authentication Flow (Swagger)
+1. Call `POST /api/v1/auth/login` with the credentials above.
+2. Copy the `token` from the response.
+3. Click **Authorize** in Swagger and enter: `Bearer <your_token>`.
 
-### Authentication
+---
+
+## 🛠 API Documentation
+
+### 1. Authentication (`AuthController`)
 - `POST /api/v1/auth/login`: Authenticate and receive a JWT token.
 
-### Financial Records
-- `POST /api/v1/records/create/{userId}`: Create a new financial record.
-- `PUT /api/v1/records/update/{recordId}`: Update an existing record.
+### 2. Financial Records (`FinancialRecordController`)
+- `GET /api/v1/records/search`: **Advanced Filtering**
+    - Query Params: `userId`, `type` (INCOME/EXPENSE), `category`, `startDate`, `endDate`.
+- `POST /api/v1/records/create/{userId}`: Create record (includes normalization and 60s duplicate check).
+- `PUT /api/v1/records/update/{recordId}`: Update existing record details.
 - `DELETE /api/v1/records/delete/{recordId}`: Soft delete a record.
-- `GET /api/v1/records/{recordId}`: Get a record by ID.
-- `GET /api/v1/records/user/{userId}`: Get all records for a user.
+- `GET /api/v1/records/get/{recordId}`: Fetch specific record details.
 
-### Dashboard
-- `GET /api/v1/dashboard/summary/{userId}`: Get financial summary for a user.
-- `GET /api/v1/dashboard/records/{userId}`: Get records for a user.
-- `GET /api/v1/dashboard/records/all`: Get all records (Analyst/Admin).
+### 3. Dashboard & Insights (`DashboardController`)
+- `GET /api/v1/dashboard/summary/{userId}`: Returns totals, category breakdowns, recent activity, and monthly trends.
+- `GET /api/v1/dashboard/records/all`: Paginated view of all active records (Analyst/Admin only).
 
-### Users (Admin only)
-- `GET /api/v1/users`: List all users.
-- `POST /api/v1/users/create`: Create a new user.
-- `PUT /api/v1/users/update/{userId}`: Update user details.
-- `DELETE /api/v1/users/delete/{userId}`: Soft delete a user.
-- `POST /api/v1/users/{userId}/assign-roles`: Assign roles to a user.
+### 4. User Management (`UserController` - Admin Only)
+- `POST /api/v1/users/create`: Create new user with Role ID (Strict mobile/email validation).
+- `GET /api/v1/dashboard/getAllUsers`: Paginated list of all system users.
+- `POST /api/v1/users/{userId}/assign-roles`: Update roles for a specific user.
 
-## Security
+---
 
-Permissions are embedded in the JWT token. The following permissions are supported:
-- `FINANCIAL_RECORD_READ`, `FINANCIAL_RECORD_WRITE`, `FINANCIAL_RECORD_DELETE`
-- `FINANCIAL_SUMMARY_READ`
-- `USER_READ`, `USER_WRITE`, `USER_DELETE`
-- `ROLE_READ`, `ROLE_WRITE`
-- `PERMISSION_READ`, `PERMISSION_WRITE`
+## 🛡 Security & Error Handling
+
+| Status Code | Description | Error Handling Behavior |
+| :--- | :--- | :--- |
+| **200/201** | Success | Returns the requested resource or success VO. |
+| **400** | Validation/Input | Returns **all** field errors at once in a JSON map. |
+| **401** | Unauthorized | Friendly message for invalid credentials or missing tokens. |
+| **403** | Forbidden | Clear message for missing permissions (Access Denied). |
+| **409** | Conflict/Duplicate | Triggered by the 60-second duplicate record check. |

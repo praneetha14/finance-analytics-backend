@@ -31,10 +31,9 @@ public class RoleServiceImpl implements RoleService {
     private final RolePermissionRepository rolePermissionRepository;
 
     @Override
-    @Transactional
     public RoleResponseVO createRole(RoleRequestDTO roleRequestDTO) {
         log.info("Creating new role: {}", roleRequestDTO.getRoleName());
-        
+
         if (roleRepository.existsByRoleName(roleRequestDTO.getRoleName())) {
             throw new DuplicateResourceException("Role already exists: " + roleRequestDTO.getRoleName());
         }
@@ -46,7 +45,7 @@ public class RoleServiceImpl implements RoleService {
 
         RoleEntity savedRole = roleRepository.save(roleEntity);
         saveRolePermissions(savedRole, roleRequestDTO.getPermissionIds());
-        
+
         return mapToVO(savedRole);
     }
 
@@ -54,7 +53,7 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public RoleResponseVO updateRole(UUID id, RoleRequestDTO roleRequestDTO) {
         log.info("Updating role with id: {}", id);
-        
+
         RoleEntity roleEntity = roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + id));
 
@@ -67,20 +66,20 @@ public class RoleServiceImpl implements RoleService {
         roleEntity.setUpdatedAt(LocalDateTime.now());
 
         RoleEntity updatedRole = roleRepository.save(roleEntity);
-        
+
         rolePermissionRepository.deleteByRole(updatedRole);
         saveRolePermissions(updatedRole, roleRequestDTO.getPermissionIds());
-        
+
         return mapToVO(updatedRole);
     }
 
     private void saveRolePermissions(RoleEntity role, List<UUID> permissionIds) {
         if (permissionIds == null || permissionIds.isEmpty()) return;
-        
+
         for (UUID permissionId : permissionIds) {
             PermissionsEntity permission = permissionRepository.findById(permissionId)
                     .orElseThrow(() -> new ResourceNotFoundException("Permission not found with id: " + permissionId));
-            
+
             RolePermissionsEntity rolePermissionsEntity = new RolePermissionsEntity();
             rolePermissionsEntity.setRole(role);
             rolePermissionsEntity.setPermission(permission);
@@ -92,18 +91,18 @@ public class RoleServiceImpl implements RoleService {
     @Transactional
     public void deleteRole(UUID id) {
         log.info("Deleting role with id: {}", id);
-        
+
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role not found with id: " + id);
         }
-        
+
         roleRepository.deleteById(id);
     }
 
     @Override
     public RoleResponseVO getRoleById(UUID id) {
         log.info("Fetching role with id: {}", id);
-        
+
         return roleRepository.findById(id)
                 .map(this::mapToVO)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found with id: " + id));
@@ -112,7 +111,7 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public List<RoleResponseVO> getAllRoles() {
         log.info("Fetching all roles");
-        
+
         return roleRepository.findAll().stream()
                 .map(this::mapToVO)
                 .collect(Collectors.toList());

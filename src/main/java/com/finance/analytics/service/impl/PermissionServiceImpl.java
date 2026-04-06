@@ -24,7 +24,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionResponseVO createPermission(PermissionRequestDTO requestDTO) {
         log.info("Creating new permission: {}", requestDTO.getName());
-        
+
         if (permissionRepository.existsByName(requestDTO.getName())) {
             throw new DuplicateResourceException("Permission already exists with name: " + requestDTO.getName());
         }
@@ -40,7 +40,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public PermissionResponseVO updatePermission(UUID id, PermissionRequestDTO requestDTO) {
         log.info("Updating permission with id: {}", id);
-        
+
         PermissionsEntity permissionsEntity = permissionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Permission not found with id: " + id));
 
@@ -58,18 +58,18 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public void deletePermission(UUID id) {
         log.info("Deleting permission with id: {}", id);
-        
+
         if (!permissionRepository.existsById(id)) {
             throw new ResourceNotFoundException("Permission not found with id: " + id);
         }
-        
+
         permissionRepository.deleteById(id);
     }
 
     @Override
     public PermissionResponseVO getPermissionById(UUID id) {
         log.info("Fetching permission with id: {}", id);
-        
+
         return permissionRepository.findById(id)
                 .map(this::mapToVO)
                 .orElseThrow(() -> new ResourceNotFoundException("Permission not found with id: " + id));
@@ -78,7 +78,7 @@ public class PermissionServiceImpl implements PermissionService {
     @Override
     public List<PermissionResponseVO> getAllPermissions() {
         log.info("Fetching all permissions");
-        
+
         return permissionRepository.findAll().stream()
                 .map(this::mapToVO)
                 .collect(Collectors.toList());

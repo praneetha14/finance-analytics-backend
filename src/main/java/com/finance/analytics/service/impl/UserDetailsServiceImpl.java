@@ -6,9 +6,9 @@ import com.finance.analytics.entity.UserRolesEntity;
 import com.finance.analytics.repository.RolePermissionRepository;
 import com.finance.analytics.repository.UserRepository;
 import com.finance.analytics.repository.UserRoleRepository;
+import com.finance.analytics.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -50,6 +50,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
             }
         }
 
-        return new User(userEntity.getEmail(), userEntity.getPassword(), authorities);
+        return new UserPrincipal(userEntity, authorities);
     }
 }

@@ -12,6 +12,7 @@ import com.finance.analytics.model.vo.UserResponseVO;
 import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.UserRepository;
 import com.finance.analytics.repository.UserRoleRepository;
+import com.finance.analytics.security.UserPrincipal;
 import com.finance.analytics.service.DashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -19,18 +20,10 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -39,7 +32,6 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
 public class DashboardServiceImpl implements DashboardService {
 
@@ -50,11 +42,23 @@ public class DashboardServiceImpl implements DashboardService {
     @Override
     public SuccessResponseVO<List<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId) {
         validateUser(userId);
+        checkViewerAccess(userId);
         List<FinancialRecordEntity> financialRecordEntities = financialRecordRepository.findByUserIdAndIsActiveTrue(userId);
         List<FinancialRecordResponseVO> financialRecordResponseVOS = financialRecordEntities.stream()
                 .map(this::mapRecordToVO)
                 .collect(Collectors.toList());
         return SuccessResponseVO.of(200, "Records fetched successfully", financialRecordResponseVOS);
+    }
+
+    private void checkViewerAccess(UUID userId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal) {
+            boolean isViewer = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_VIEWER"));
+            if (isViewer && !principal.getId().equals(userId)) {
+                throw new com.finance.analytics.exception.UserUnauthorizedException("You are not authorized to access this user's data");
+            }
+        }
     }
 
     @Override
@@ -64,7 +68,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<FinancialRecordResponseVO> financialRecordResponseVOS = financialRecordEntities.getContent().stream()
                 .map(this::mapRecordToVO)
                 .collect(Collectors.toList());
-        
+
         Page<FinancialRecordResponseVO> financialRecordResponseVOPage =
                 new PageImpl<>(
                         financialRecordResponseVOS,
@@ -78,13 +82,13 @@ public class DashboardServiceImpl implements DashboardService {
     public SuccessResponseVO<DashboardSummaryVO> getSummaryByUserId(UUID userId) {
         validateUser(userId);
         List<FinancialRecordEntity> records = financialRecordRepository.findByUserIdAndIsActiveTrue(userId);
-        
+
         Double totalIncome = 0.0;
         Double totalExpense = 0.0;
         Map<String, Double> categoryWiseIncome = new HashMap<>();
         Map<String, Double> categoryWiseExpenses = new HashMap<>();
         Map<String, Double> monthlyTrends = new TreeMap<>(); // TreeMap keeps months sorted
-        
+
         DateTimeFormatter monthFormatter = DateTimeFormatter.ofPattern("yyyy-MM");
 
         for (FinancialRecordEntity record : records) {
@@ -129,7 +133,8 @@ public class DashboardServiceImpl implements DashboardService {
                 entity.getAmount(),
                 entity.getCategory(),
                 entity.getDescription(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getUser() != null ? entity.getUser().getId() : null
         );
     }
 
@@ -140,7 +145,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<UserResponseVO> userResponseVOS = userEntities.getContent().stream()
                 .map(this::mapToVO)
                 .collect(Collectors.toList());
-                
+
         Page<UserResponseVO> userResponseVOPage = new PageImpl<>(
                 userResponseVOS,
                 pageable,
@@ -154,7 +159,7 @@ public class DashboardServiceImpl implements DashboardService {
         List<RoleResponseVO> roles = userRoles.stream()
                 .map(ur -> new RoleResponseVO(ur.getRole().getId(), ur.getRole().getRoleName()))
                 .collect(Collectors.toList());
-        
+
         return new UserResponseVO(
                 entity.getId(),
                 entity.getFirstName(),
