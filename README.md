@@ -21,6 +21,17 @@ A robust Spring Boot microservice for financial tracking, providing real-time an
 
 ---
 
+## 🛠 Tech Stack
+
+- **Language**: Java 17
+- **Framework**: Spring Boot 3.5.3
+- **Security**: Spring Security (with JWT)
+- **Database**: 
+  - Application: MySQL
+  - Testing: H2 Database
+- **Build Tool**: Gradle
+---
+
 ## 🔑 Getting Started
 
 ### 1. Default Admin Credentials
