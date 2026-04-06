@@ -51,7 +51,6 @@ A robust Spring Boot microservice for financial tracking, providing real-time an
 The API documentation is automatically generated and hosted via GitHub Pages:
 👉 **[View Live API Documentation](https://praneetha14.github.io/finance-analytics-backend/)**
 
-*(Note: Replace `<your-username>` and `<your-repo-name>` with your actual GitHub details. Ensure GitHub Pages is enabled for the `gh-pages` branch or the `/docs` folder in your repository settings.)*
 
 ### 1. Authentication (`AuthController`)
 - `POST /api/v1/auth/login`: Authenticate and receive a JWT token.
