@@ -1,6 +1,7 @@
 # Finance Analytics Backend
 
-This microservice provides financial analytics for users, allowing them to track their income and expenses, and providing summaries and detailed reports.
+This microservice provides financial analytics for users, allowing them to track their income and expenses, 
+and providing summaries and detailed reports.
 
 ## Features
 

@@ -17,7 +17,5 @@ public interface UserService {
     SuccessResponseVO<UserResponseVO> updateUser(UUID userId, CreateUserDTO createUserDTO);
     void deleteUser(UUID userId);
     SuccessResponseVO<UserResponseVO> getUserById(UUID userId);
-    SuccessResponseVO<Page<UserResponseVO>> getAllUsers(Pageable pageable);
-    SuccessResponseVO<UserResponseVO> toggleUserStatus(UUID userId);
     SuccessResponseVO<UserResponseVO> assignRoles(UUID userId, List<UUID> roleIds);
 }

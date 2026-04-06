@@ -2,6 +2,7 @@ package com.finance.analytics;
 
 import com.finance.analytics.repository.FinancialRecordRepository;
 import com.finance.analytics.repository.PermissionRepository;
+import com.finance.analytics.repository.RolePermissionRepository;
 import com.finance.analytics.repository.RoleRepository;
 import com.finance.analytics.repository.UserRepository;
 import com.finance.analytics.repository.UserRoleRepository;
@@ -50,8 +51,9 @@ public class FinanceAnalyticsAutoConfiguration {
     }
 
     @Bean
-    public RoleService roleService(RoleRepository roleRepository) {
-        return new RoleServiceImpl(roleRepository);
+    public RoleService roleService(RoleRepository roleRepository, PermissionRepository permissionRepository,
+                                   RolePermissionRepository rolePermissionRepository) {
+        return new RoleServiceImpl(roleRepository, permissionRepository, rolePermissionRepository);
     }
 
     @Bean

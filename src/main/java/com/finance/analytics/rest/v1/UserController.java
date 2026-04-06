@@ -49,18 +49,6 @@ public class UserController {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 
-    @GetMapping
-    @PreAuthorize("hasAuthority('USER_READ')")
-    public ResponseEntity<SuccessResponseVO<Page<UserResponseVO>>> getAllUsers(Pageable pageable) {
-        return ResponseEntity.ok(userService.getAllUsers(pageable));
-    }
-
-    @PatchMapping("/{userId}/toggle-status")
-    @PreAuthorize("hasAuthority('USER_WRITE')")
-    public ResponseEntity<SuccessResponseVO<UserResponseVO>> toggleUserStatus(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.toggleUserStatus(userId));
-    }
-
     @PostMapping("/{userId}/assign-roles")
     @PreAuthorize("hasAuthority('USER_WRITE')")
     public ResponseEntity<SuccessResponseVO<UserResponseVO>> assignRoles(@PathVariable UUID userId, @RequestBody List<UUID> roleIds) {

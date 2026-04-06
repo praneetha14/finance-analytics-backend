@@ -43,15 +43,9 @@ public class FinancialRecordController {
         return ResponseEntity.ok(SuccessResponseVO.of(200, "Record deleted successfully", null));
     }
 
-    @GetMapping("/{recordId}")
+    @GetMapping("/get/{recordId}")
     @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
     public ResponseEntity<SuccessResponseVO<FinancialRecordResponseVO>> getRecordById(@PathVariable UUID recordId) {
         return ResponseEntity.ok(financialRecordService.getRecordById(recordId));
-    }
-
-    @GetMapping("/user/{userId}")
-    @PreAuthorize("hasAuthority('FINANCIAL_RECORD_READ')")
-    public ResponseEntity<SuccessResponseVO<Page<FinancialRecordResponseVO>>> getRecordsByUserId(@PathVariable UUID userId, Pageable pageable) {
-        return ResponseEntity.ok(financialRecordService.getRecordsByUserId(userId, pageable));
     }
 }

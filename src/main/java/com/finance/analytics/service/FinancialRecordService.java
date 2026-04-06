@@ -14,5 +14,4 @@ public interface FinancialRecordService {
     SuccessResponseVO<FinancialRecordResponseVO> updateRecord(UUID recordId, UpdateRecordDTO updateRecordDTO);
     void deleteRecord(UUID recordId);
     SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId);
-    SuccessResponseVO<Page<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId, Pageable pageable);
 }

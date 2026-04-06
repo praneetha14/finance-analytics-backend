@@ -25,22 +25,6 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
     private final UserRepository userRepository;
 
     @Override
-    public SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId) {
-        FinancialRecordEntity record = financialRecordRepository.findById(recordId)
-                .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
-        return SuccessResponseVO.of(200, "Record fetched successfully", mapToVO(record));
-    }
-
-    @Override
-    public SuccessResponseVO<Page<FinancialRecordResponseVO>> getRecordsByUserId(UUID userId, Pageable pageable) {
-        UserEntity user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        Page<FinancialRecordResponseVO> records = financialRecordRepository.findByUserAndIsActiveTrue(user, pageable)
-                .map(this::mapToVO);
-        return SuccessResponseVO.of(200, "Records fetched successfully", records);
-    }
-
-    @Override
     public SuccessResponseVO<FinancialRecordResponseVO> createRecord(UUID userId, CreateRecordDTO createRecordDTO) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(()-> new ResourceNotFoundException("User not found"));
@@ -77,6 +61,13 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         }
         financialRecordEntity = financialRecordRepository.save(financialRecordEntity);
         return SuccessResponseVO.of(200, "Record updated successfully", mapToVO(financialRecordEntity));
+    }
+
+    @Override
+    public SuccessResponseVO<FinancialRecordResponseVO> getRecordById(UUID recordId) {
+        FinancialRecordEntity recordEntity = financialRecordRepository.findById(recordId)
+                .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
+        return SuccessResponseVO.of(200, "Record fetched successfully", mapToVO(recordEntity));
     }
 
     @Override

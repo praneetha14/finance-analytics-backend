@@ -134,21 +134,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public SuccessResponseVO<Page<UserResponseVO>> getAllUsers(Pageable pageable) {
-        Page<UserResponseVO> users = userRepository.findAll(pageable).map(this::mapToVO);
-        return SuccessResponseVO.of(200, "Users fetched successfully", users);
-    }
-
-    @Override
-    public SuccessResponseVO<UserResponseVO> toggleUserStatus(UUID userId) {
-        UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        userEntity.setIsActive(!userEntity.getIsActive());
-        UserEntity updatedUser = userRepository.save(userEntity);
-        return SuccessResponseVO.of(200, "User status updated", mapToVO(updatedUser));
-    }
-
-    @Override
     public SuccessResponseVO<UserResponseVO> assignRoles(UUID userId, List<UUID> roleIds) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
