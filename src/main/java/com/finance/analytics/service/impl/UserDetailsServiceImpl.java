@@ -28,7 +28,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final RolePermissionRepository rolePermissionRepository;
 
     @Override
-    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));

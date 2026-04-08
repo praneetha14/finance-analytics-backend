@@ -64,7 +64,7 @@ public class UserServiceTest extends AbstractTest {
         dto.setFirstName("John");
         dto.setLastName("Doe");
         dto.setEmail("john" + UUID.randomUUID() + "@example.com");
-        dto.setMobile("9876543210");
+        dto.setMobile("9876593210");
         dto.setPassword("password123");
         dto.setRoles(List.of(viewerRole.getId()));
 

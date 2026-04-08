@@ -31,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Transactional
 public class ViewerSecurityTest {
 
     @Autowired
@@ -114,7 +113,6 @@ public class ViewerSecurityTest {
     void viewerShouldNotBeAbleToSeeSelfSummary() throws Exception {
         setupSecurityContext(user1Id, "user1@test.com", List.of("ROLE_VIEWER", "FINANCIAL_RECORD_READ"));
         
-        // FINANCIAL_SUMMARY_READ is NOT given to VIEWER
         mockMvc.perform(get("/api/v1/dashboard/summary/" + user1Id))
                 .andExpect(status().isForbidden());
     }
@@ -122,9 +120,7 @@ public class ViewerSecurityTest {
     @Test
     void viewerSearchShouldBeFilteredToSelf() throws Exception {
         setupSecurityContext(user2Id, "user2@test.com", List.of("ROLE_VIEWER", "FINANCIAL_RECORD_READ"));
-        
-        // user2 has no records. record1 belongs to user1.
-        // Search without userId should return empty for user2.
+
         mockMvc.perform(get("/api/v1/records/search?page=0&size=10"))
                 .andExpect(status().isOk())
                 .andExpect(result -> {
@@ -147,9 +143,6 @@ public class ViewerSecurityTest {
     void shouldReturnStandardizedFailureResponse() throws Exception {
         setupSecurityContext(user1Id, "user1@test.com", List.of("ROLE_VIEWER", "FINANCIAL_RECORD_READ"));
         
-        // Try to fetch non-existent record. 
-        // @securityUtils.canAccessRecord will return false for non-existent record, 
-        // which throws AccessDeniedException (403).
         mockMvc.perform(get("/api/v1/records/get/" + UUID.randomUUID()))
                 .andDo(print())
                 .andExpect(status().isForbidden())

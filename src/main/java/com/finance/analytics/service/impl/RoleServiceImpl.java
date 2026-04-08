@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service
 @RequiredArgsConstructor
 @Slf4j
 public class RoleServiceImpl implements RoleService {
@@ -88,14 +87,12 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Transactional
     public void deleteRole(UUID id) {
         log.info("Deleting role with id: {}", id);
 
         if (!roleRepository.existsById(id)) {
             throw new ResourceNotFoundException("Role not found with id: " + id);
         }
-
         roleRepository.deleteById(id);
     }
 

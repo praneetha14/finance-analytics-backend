@@ -76,7 +76,6 @@ public class UserServiceImpl implements UserService {
     public SuccessResponseVO<UserResponseVO> createUser(CreateUserDTO createUserDTO) {
         log.info("Creating user with email: {}", createUserDTO.getEmail());
         validateUserUniqueness(createUserDTO.getEmail(), createUserDTO.getMobile(), null);
-
         UserEntity userEntity = mapToEntity(createUserDTO);
         userEntity.setPassword(passwordEncoder.encode(createUserDTO.getPassword()));
         userEntity.setIsActive(true);
@@ -92,9 +91,7 @@ public class UserServiceImpl implements UserService {
         log.info("Updating user with id: {}", userId);
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
         validateUserUniqueness(createUserDTO.getEmail(), createUserDTO.getMobile(), userId);
-
         userEntity.setFirstName(createUserDTO.getFirstName());
         userEntity.setLastName(createUserDTO.getLastName());
         userEntity.setEmail(createUserDTO.getEmail());
@@ -105,7 +102,6 @@ public class UserServiceImpl implements UserService {
         }
 
         UserEntity updatedUser = userRepository.save(userEntity);
-
         if (createUserDTO.getRoles() != null) {
             userRoleRepository.deleteByUser(updatedUser);
             saveUserRoles(updatedUser, createUserDTO.getRoles());
@@ -142,22 +138,22 @@ public class UserServiceImpl implements UserService {
     }
 
     private void validateUserUniqueness(String email, String mobile, UUID userId) {
-        userRepository.findByEmail(email).ifPresent(user -> {
-            if (userId == null || !user.getId().equals(userId)) {
+
+        UserEntity userEmail = userRepository.findByEmail(email).orElse(null);
+        if (userEmail != null) {
+            if (userId == null || !userEmail.getId().equals(userId)) {
                 throw new DuplicateResourceException("Email already exists");
             }
-        });
+        }
 
-        // Mobile check (simplified)
-        if (userRepository.existsByMobile(mobile)) {
-            UserEntity existing = userRepository.findAll().stream()
-                    .filter(u -> u.getMobile().equals(mobile))
-                    .findFirst().orElse(null);
-            if (existing != null && (userId == null || !existing.getId().equals(userId))) {
+        UserEntity userMobile = userRepository.findByMobile(mobile).orElse(null);
+        if (userMobile != null) {
+            if (userId == null || !userMobile.getId().equals(userId)) {
                 throw new DuplicateResourceException("Mobile number already exists");
             }
         }
     }
+
 
     private UserEntity mapToEntity(CreateUserDTO dto) {
         UserEntity entity = new UserEntity();

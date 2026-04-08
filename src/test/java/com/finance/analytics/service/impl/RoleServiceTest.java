@@ -56,7 +56,6 @@ public class RoleServiceTest extends AbstractTest {
         RoleRequestDTO dto = new RoleRequestDTO();
         dto.setRoleName(RoleEnum.ADMIN);
         
-        // Ensure ADMIN exists
         if (!roleRepository.existsByRoleName(RoleEnum.ADMIN)) {
             roleService.createRole(dto);
         }

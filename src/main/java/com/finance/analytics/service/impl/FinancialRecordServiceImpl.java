@@ -74,7 +74,6 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         FinancialRecordEntity financialRecordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
 
-        // Enforce that VIEWER can only update own records
         checkViewerAccess(financialRecordEntity.getUser().getId());
 
         if (!Boolean.TRUE.equals(financialRecordEntity.getIsActive())) {
@@ -108,7 +107,6 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         FinancialRecordEntity recordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
 
-        // Enforce that VIEWER can only see own record
         checkViewerAccess(recordEntity.getUser().getId());
 
         return SuccessResponseVO.of(200, "Record fetched successfully", mapToVO(recordEntity));
@@ -120,7 +118,6 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
             LocalDateTime startDate, LocalDateTime endDate,
             Integer page, Integer size, String sort) {
 
-        // If user is a VIEWER, force userId to be current user's ID
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserPrincipal principal) {
             boolean isViewer = authentication.getAuthorities().stream()
@@ -165,7 +162,6 @@ public class FinancialRecordServiceImpl implements FinancialRecordService {
         FinancialRecordEntity financialRecordEntity = financialRecordRepository.findById(recordId)
                 .orElseThrow(() -> new ResourceNotFoundException("Record not found"));
 
-        // Enforce that VIEWER can only delete own records (though they shouldn't have delete permission anyway)
         checkViewerAccess(financialRecordEntity.getUser().getId());
 
         if (!Boolean.TRUE.equals(financialRecordEntity.getIsActive())) {

@@ -29,8 +29,7 @@ public class SecurityUtils {
             return principal.getId().equals(userId);
         }
 
-        // For other roles, you might have different logic, but for now let's say they can access
-        return true; 
+        return true;
     }
 
     public boolean canAccessRecord(UUID recordId) {
